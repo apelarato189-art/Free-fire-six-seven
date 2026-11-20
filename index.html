@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>AURA MAX · Otimizador de Sensibilidade</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(circle at 10% 20%, #0a0f1a, #030508);
+      color: #eef5ff;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      padding: 18px 16px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.5;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .app-container { max-width: 560px; width: 100%; margin: 0 auto; }
+
+    /* HEADER */
+    .hero {
+      text-align: center;
+      padding: 22px 18px 18px;
+      border: 1px solid rgba(0, 229, 255, 0.45);
+      border-radius: 28px;
+      background: rgba(10, 20, 30, 0.65);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 24px rgba(0, 229, 255, 0.25), inset 0 0 12px rgba(0, 229, 255, 0.08);
+      margin-bottom: 18px;
+      animation: glowPulse 4s infinite ease-in-out;
+    }
+    .hero h1 {
+      font-size: 1.9rem; font-weight: 800; letter-spacing: 2px;
+      color: #00e5ff;
+      text-shadow: 0 0 10px #00e5ff, 0 0 28px #00c8e5;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .hero h1 span { font-size: 2rem; filter: drop-shadow(0 0 8px #00e5ff); }
+    .hero p {
+      font-size: 0.9rem; letter-spacing: 3px; font-weight: 500;
+      color: #aad4e6; text-transform: uppercase; margin-top: 4px;
+    }
+    .badge-device {
+      display: inline-block; margin-top: 10px;
+      font-size: 0.78rem; background: #0f1e2b;
+      padding: 5px 14px; border-radius: 40px;
+      color: #9bd8f0; border: 1px solid #1f4b5e;
+      font-weight: 500; letter-spacing: 0.5px;
+    }
+    @keyframes glowPulse {
+      0% { box-shadow: 0 0 10px #00e5ff40; }
+      50% { box-shadow: 0 0 24px #00e5ff80; }
+      100% { box-shadow: 0 0 10px #00e5ff40; }
+    }
+
+    /* CARDS */
+    .card {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(4px);
+      border: 1px solid #1f3a4b;
+      border-radius: 26px;
+      padding: 22px 20px;
+      margin-top: 16px;
+      box-shadow: 0 12px 28px -8px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,229,255,0.1) inset;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .card:hover {
+      border-color: #00e5ff80;
+      box-shadow: 0 12px 28px -8px #000, 0 0 0 1px #00e5ff33 inset, 0 0 18px #00e5ff20;
+    }
+    .card h2 {
+      font-size: 1.3rem; font-weight: 600; color: #00e5ff;
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px; letter-spacing: -0.2px;
+    }
+    .card h2 i { font-style: normal; font-size: 1.5rem; }
+    .card p, .card small { color: #b7cddd; font-size: 0.94rem; }
+
+    .status-message {
+      background: #0b1622; padding: 12px 16px;
+      border-radius: 14px; font-size: 0.88rem;
+      color: #8bc5dd; border-left: 4px solid #00e5ff;
+      margin: 14px 0 4px; transition: 0.2s;
+      word-break: break-word;
+      box-shadow: 0 2px 10px #00000033;
+      white-space: pre-line;
+    }
+
+    /* BUTTONS */
+    button {
+      width: 100%; padding: 16px 12px;
+      border: none; border-radius: 60px;
+      background: linear-gradient(145deg, #00e5ff, #00b8d4);
+      color: #00131c; font-weight: 700; font-size: 0.95rem;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      margin-top: 12px; cursor: pointer;
+      box-shadow: 0 8px 18px -6px #00e5ff90, 0 0 0 1px #ffffff30 inset;
+      transition: all 0.2s ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: inherit; touch-action: manipulation;
+    }
+    button:active {
+      transform: scale(0.97);
+      box-shadow: 0 3px 10px -3px #00e5ff, 0 0 0 1px #ffffff50 inset;
+      background: linear-gradient(145deg, #33eeff, #00c8e5);
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    button.secondary {
+      background: #142433; color: #b0e2f5;
+      box-shadow: 0 4px 12px -2px #00000080, 0 0 0 1px #2a4b5e inset;
+      border: 1px solid #2a5b70;
+    }
+    button.secondary:active { background: #1e3347; }
+    button i { font-style: normal; font-size: 1.2rem; }
+
+    /* SLIDERS */
+    .slider-group { margin-top: 10px; margin-bottom: 4px; }
+    .slider-item {
+      margin-bottom: 20px; background: #0e1a26;
+      padding: 14px 16px 10px; border-radius: 18px;
+      border: 1px solid #1e3b4b; transition: 0.2s;
+      box-shadow: 0 4px 10px -4px black;
+    }
+    .slider-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 8px;
+    }
+    .slider-label {
+      font-weight: 600; color: #d3e7f2; font-size: 0.95rem;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .slider-value {
+      background: #001e2b; padding: 5px 14px;
+      border-radius: 40px; font-weight: 800; color: #00e5ff;
+      font-size: 1.1rem; min-width: 64px; text-align: center;
+      border: 1px solid #00b8d4; box-shadow: 0 0 10px #00e5ff33;
+      font-variant-numeric: tabular-nums;
+    }
+    input[type=range] {
+      width: 100%; height: 6px; -webkit-appearance: none;
+      background: linear-gradient(90deg, #00e5ff 0%, #00e5ff var(--fill, 50%), #1f3f4e var(--fill, 50%), #1f3f4e 100%);
+      border-radius: 10px; outline: none; margin: 12px 0 6px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 24px; height: 24px;
+      background: #ffffff; border-radius: 50%;
+      border: 3px solid #00e5ff;
+      box-shadow: 0 0 16px #00e5ff, 0 2px 8px black; cursor: pointer;
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px; background: #fff;
+      border-radius: 50%; border: 3px solid #00e5ff;
+      box-shadow: 0 0 14px #00e5ff; cursor: pointer;
+    }
+
+    /* TIPS */
+    .tips-list { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+    .tip-item {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 0.93rem; color: #b7d2e3;
+      background: #0b1722; padding: 12px 16px;
+      border-radius: 50px; border: 1px solid #1c3343;
+    }
+    .tip-item::before {
+      content: "✓"; color: #00e5ff; font-weight: 900;
+      font-size: 1.2rem; text-shadow: 0 0 6px #00e5ff;
+    }
+
+    /* PAINEL DE DIAGNÓSTICO */
+    .diag-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .diag-item {
+      background: #0b1722;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid #1c3343;
+    }
+    .diag-label {
+      font-size: 0.72rem;
+      color: #7e9cb0;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 4px;
+    }
+    .diag-value {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #00e5ff;
+      font-variant-numeric: tabular-nums;
+    }
+    .diag-value.good { color: #34e07b; }
+    .diag-value.warn { color: #ffb347; }
+    .diag-value.bad  { color: #ff5b5b; }
+
+    /* BARRA DE PROGRESSO */
+    .progress-bar {
+      width: 100%; height: 8px;
+      background: #0b1722; border-radius: 20px;
+      overflow: hidden; margin-top: 12px;
+      border: 1px solid #1c3343;
+    }
+    .progress-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #00e5ff, #34e07b);
+      transition: width 0.3s ease;
+      box-shadow: 0 0 12px #00e5ff;
+    }
+
+    .footer-note {
+      margin-top: 24px; text-align: center;
+      font-size: 0.72rem; color: #3e657a; letter-spacing: 0.6px;
+    }
+    .pulse-dot {
+      display: inline-block; width: 8px; height: 8px;
+      background: #34e07b; border-radius: 50%;
+      margin-right: 6px;
+      box-shadow: 0 0 8px #34e07b;
+      animation: pulseDot 1.2s infinite ease-in-out;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <header class="hero">
+    <h1><span>⚡</span> AURA MAX</h1>
+    <p>FREE FIRE OPTIMIZER</p>
+    <div class="badge-device">📱 OTIMIZADOR MOBILE · TUNING</div>
+  </header>
+
+  <!-- ========== CARD OTIMIZAÇÃO ========== -->
+  <div class="card">
+    <h2><i>🚀</i> Otimização</h2>
+    <p>Executa limpeza de memória, mede desempenho e gera diagnóstico real do dispositivo.</p>
+
+    <div class="diag-grid">
+      <div class="diag-item">
+        <div class="diag-label">Memória usada</div>
+        <div class="diag-value" id="diag-mem">—</div>
+      </div>
+      <div class="diag-item">
+        <div class="diag-label">FPS estimado</div>
+        <div class="diag-value" id="diag-fps">—</div>
+      </div>
+      <div class="diag-item">
+        <div class="diag-label">Carga da CPU</div>
+        <div class="diag-value" id="diag-cpu">—</div>
+      </div>
+      <div class="diag-item">
+        <div class="diag-label">Temperatura</div>
+        <div class="diag-value" id="diag-temp">—</div>
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <button onclick="executarOtimizacao()" id="btn-otimizar" aria-label="Iniciar otimização">
+      <i>⚡</i> INICIAR OTIMIZAÇÃO
+    </button>
+    <div id="status" class="status-message" role="status">
+      <span class="pulse-dot"></span>Pronto. Toque em INICIAR OTIMIZAÇÃO.
+    </div>
+  </div>
+
+  <!-- ========== CALIBRAGEM ========== -->
+  <div class="card">
+    <h2><i>🎯</i> Calibragem personalizada</h2>
+    <p>Ajuste os valores e teste no campo de treinamento.</p>
+    <div id="sliders" class="slider-group"></div>
+    <button onclick="salvar()" aria-label="Salvar calibragem"><i>💾</i> SALVAR CALIBRAGEM</button>
+    <button onclick="copiar()" class="secondary" aria-label="Copiar configurações"><i>📋</i> COPIAR CONFIGURAÇÕES</button>
+    <button onclick="resetar()" class="secondary" aria-label="Restaurar padrões"><i>🔄</i> RESTAURAR PADRÕES</button>
+  </div>
+
+  <!-- ========== RECOMENDAÇÕES ========== -->
+  <div class="card">
+    <h2><i>📱</i> Recomendações de desempenho</h2>
+    <div class="tips-list">
+      <div class="tip-item">Feche aplicativos que não estiver usando.</div>
+      <div class="tip-item">Ative o modo de desempenho do sistema.</div>
+      <div class="tip-item">Mantenha pelo menos 20% de armazenamento livre.</div>
+      <div class="tip-item">Evite jogar com o aparelho carregando ou superaquecido.</div>
+      <div class="tip-item">Use gráficos e FPS compatíveis com seu aparelho.</div>
+    </div>
+  </div>
+
+  <div class="footer-note">AURA MAX · AJUSTE FINO DE SENSIBILIDADE</div>
+</div>
+
+<script>
+  (function() {
+    // ================= CALIBRAGEM =================
+    const configuracoes = [
+      { nome: "Geral", padrao: 150, icone: "🎮" },
+      { nome: "Ponto vermelho", padrao: 140, icone: "🔴" },
+      { nome: "Mira 2x", padrao: 130, icone: "🔍" },
+      { nome: "Mira 4x", padrao: 115, icone: "🔎" },
+      { nome: "Mira AWM", padrao: 65, icone: "🎯" },
+      { nome: "Olhadinha", padrao: 100, icone: "👁️" }
+    ];
+
+    const area = document.getElementById("sliders");
+    const statusEl = document.getElementById("status");
+    const progressFill = document.getElementById("progress-fill");
+
+    const diagMem = document.getElementById("diag-mem");
+    const diagFps = document.getElementById("diag-fps");
+    const diagCpu = document.getElementById("diag-cpu");
+    const diagTemp = document.getElementById("diag-temp");
+
+    // ------- Sliders -------
+    function atualizarFill(slider) {
+      const min = Number(slider.min) || 0;
+      const max = Number(slider.max) || 200;
+      const val = Number(slider.value);
+      const percent = ((val - min) / (max - min)) * 100;
+      slider.style.setProperty('--fill', percent + '%');
+    }
+
+    function criarSliders(valores) {
+      area.innerHTML = "";
+      configuracoes.forEach((item, i) => {
+        const valor = (valores && valores[i] !== undefined) ? valores[i] : item.padrao;
+        const sliderId = `s${i}`;
+        const valueId = `v${i}`;
+
+        const container = document.createElement('div');
+        container.className = 'slider-item';
+
+        const header = document.createElement('div');
+        header.className = 'slider-header';
+
+        const label = document.createElement('span');
+        label.className = 'slider-label';
+        label.innerHTML = `${item.icone} ${item.nome}`;
+
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'slider-value';
+        valueSpan.id = valueId;
+        valueSpan.textContent = valor;
+
+        header.appendChild(label);
+        header.appendChild(valueSpan);
+
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.min = 0;
+        input.max = 200;
+        input.value = valor;
+        input.id = sliderId;
+        input.setAttribute('aria-label', `Ajuste de sensibilidade: ${item.nome}`);
+
+        input.addEventListener('input', function(e) {
+          document.getElementById(valueId).textContent = e.target.value;
+          atualizarFill(e.target);
+        });
+
+        container.appendChild(header);
+        container.appendChild(input);
+        area.appendChild(container);
+
+        setTimeout(() => atualizarFill(input), 0);
+      });
+    }
+
+    function lerValores() {
+      return configuracoes.map((_, i) => {
+        const slider = document.getElementById('s' + i);
+        return slider ? Number(slider.value) : 0;
+      });
+    }
+
+    window.salvar = function() {
+      try {
+        localStorage.setItem("aura_mira", JSON.stringify(lerValores()));
+        statusEl.textContent = "💾 Calibragem salva neste navegador!";
+      } catch (e) {
+        statusEl.textContent = "⚠️ Erro ao salvar: armazenamento indisponível.";
+      }
+    };
+
+    window.copiar = function() {
+      const texto = configuracoes.map((item, i) => {
+        const slider = document.getElementById('s' + i);
+        return item.nome + ": " + (slider ? slider.value : '0');
+      }).join("\n");
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto)
+          .then(() => alert("✅ Configurações copiadas!"))
+          .catch(() => alert("Não foi possível copiar. Aqui estão:\n\n" + texto));
+      } else {
+        alert("📋 Configurações:\n\n" + texto);
+      }
+    };
+
+    window.resetar = function() {
+      localStorage.removeItem("aura_mira");
+      criarSliders();
+      statusEl.textContent = "🔄 Valores iniciais restaurados.";
+    };
+
+    // ================= OTIMIZAÇÃO REAL =================
+    function medirFPS(duracaoMs = 1000) {
+      return new Promise((resolve) => {
+        let frames = 0;
+        const inicio = performance.now();
+        function loop(now) {
+          frames++;
+          if (now - inicio >= duracaoMs) {
+            const fps = Math.round((frames * 1000) / (now - inicio));
+            resolve(fps);
+          } else {
+            requestAnimationFrame(loop);
+          }
+        }
+        requestAnimationFrame(loop);
+      });
+    }
+
+    function lerMemoria() {
+      if (performance.memory) {
+        const usedMB = (performance.memory.usedJSHeapSize / 1048576).toFixed(1);
+        const limitMB = (performance.memory.jsHeapSizeLimit / 1048576).toFixed(0);
+        const pct = ((performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit) * 100).toFixed(0);
+        return { usedMB, limitMB, pct: Number(pct) };
+      }
+      return null;
+    }
+
+    async function medirCargaCPU() {
+      return new Promise((resolve) => {
+        let last = performance.now();
+        let deltas = [];
+        const inicio = last;
+        function loop(now) {
+          const d = now - last;
+          if (d > 0) deltas.push(d);
+          last = now;
+          if (now - inicio < 800) {
+            requestAnimationFrame(loop);
+          } else {
+            const avg = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+            const variacao = Math.sqrt(deltas.reduce((s, d) => s + Math.pow(d - avg, 2), 0) / deltas.length);
+            const carga = Math.min(100, Math.round((variacao / avg) * 100));
+            resolve(carga);
+          }
+        }
+        requestAnimationFrame(loop);
+      });
+    }
+
+    async function estimarTemperatura() {
+      if (navigator.getBattery) {
+        try {
+          const bat = await navigator.getBattery();
+          if (bat.charging) return { valor: 40, fonte: "carregando", classe: "warn" };
+          return { valor: 32, fonte: "descarga", classe: "good" };
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    async function limparNavegador() {
+      if ('caches' in window) {
+        try {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        } catch (e) {}
+      }
+      if (window.gc) { try { window.gc(); } catch (e) {} }
+      try {
+        const calib = localStorage.getItem("aura_mira");
+        localStorage.clear();
+        if (calib) localStorage.setItem("aura_mira", calib);
+      } catch (e) {}
+    }
+
+    function vibrar(padrao) {
+      if (navigator.vibrate) {
+        try { navigator.vibrate(padrao); } catch (e) {}
+      }
+    }
+
+    function classificar(valor, bom, medio) {
+      if (valor >= bom) return "good";
+      if (valor >= medio) return "warn";
+      return "bad";
+    }
+
+    function animarProgresso(alvo, duracao = 1200) {
+      return new Promise((resolve) => {
+        const inicio = performance.now();
+        const inicial = parseFloat(progressFill.style.width) || 0;
+        function step(now) {
+          const t = Math.min(1, (now - inicio) / duracao);
+          const atual = inicial + (alvo - inicial) * t;
+          progressFill.style.width = atual + "%";
+          if (t < 1) requestAnimationFrame(step);
+          else resolve();
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    window.executarOtimizacao = async function() {
+      const btn = document.getElementById("btn-otimizar");
+      btn.disabled = true;
+      vibrar(30);
+
+      try {
+        statusEl.innerHTML = "🔍 Analisando dispositivo...";
+        progressFill.style.width = "0%";
+        await animarProgresso(15, 400);
+
+        const fps = await medirFPS(1000);
+        diagFps.textContent = fps + " FPS";
+        diagFps.className = "diag-value " + classificar(fps, 50, 30);
+        await animarProgresso(35, 400);
+
+        const mem = lerMemoria();
+        if (mem) {
+          diagMem.textContent = mem.usedMB + " MB";
+          diagMem.className = "diag-value " + (mem.pct < 50 ? "good" : mem.pct < 80 ? "warn" : "bad");
+          statusEl.textContent = `🧠 Memória: ${mem.usedMB} MB usados (${mem.pct}% do limite)`;
+        } else {
+          diagMem.textContent = "N/D";
+          diagMem.className = "diag-value";
+        }
+        await animarProgresso(55, 400);
+
+        const carga = await medirCargaCPU();
+        diagCpu.textContent = carga + "%";
+        diagCpu.className = "diag-value " + (carga < 20 ? "good" : carga < 50 ? "warn" : "bad");
+        await animarProgresso(75, 400);
+
+        const temp = await estimarTemperatura();
+        if (temp) {
+          diagTemp.textContent = temp.valor + "°C";
+          diagTemp.className = "diag-value " + temp.classe;
+        } else {
+          diagTemp.textContent = "—";
+        }
+        await animarProgresso(90, 400);
+
+        statusEl.innerHTML = "🧹 Limpando caches do navegador...";
+        await limparNavegador();
+        await animarProgresso(100, 500);
+
+        vibrar([40, 60, 80, 60, 40]);
+
+        let dicas = [];
+        if (fps < 30) dicas.push("FPS baixo — feche apps em segundo plano.");
+        if (mem && mem.pct > 70) dicas.push("Memória alta — reinicie o navegador.");
+        if (carga > 60) dicas.push("CPU sobrecarregada — reduza gráficos do jogo.");
+        if (!dicas.length) dicas.push("Tudo certo! Boa jogatina. 🎮");
+
+        statusEl.textContent =
+          `✅ Otimização concl
